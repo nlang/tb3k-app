@@ -6,3 +6,7 @@ You can connect to the TrashBoy using this App to change all kinds of settings a
 Visit tb3k.com for further information.
 
 THIS PROJECT IS WORK IN PROGRESS! MORE INFO TO COME SOON.
+
+## License
+
+MIT
