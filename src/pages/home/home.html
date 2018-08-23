@@ -1,17 +1,111 @@
 <ion-header>
   <ion-navbar>
-    <ion-title>Home</ion-title>
+    <ion-title>TrashBoy3000</ion-title>
+    <ion-buttons end>
+      <!--<button ion-button (click)="establishConnection()">Scan</button>-->
+    </ion-buttons>
   </ion-navbar>
 </ion-header>
 
-<ion-content padding>
-  <h2>Welcome to Ionic!</h2>
-  <p>
-    This starter project comes with simple tabs-based layout for apps
-    that are going to primarily use a Tabbed UI.
-  </p>
-  <p>
-    Take a look at the <code>src/pages/</code> directory to add or change tabs,
-    update any existing page or create new pages.
-  </p>
+<ion-content>
+  <ion-list>
+
+    <ion-card *ngIf="connectionStatus == 'SCANNING' || connectionStatus === 'DISCONNECTED'">
+      <ion-card-content>
+        <ion-icon name="ios-bluetooth" style="font-size: 3rem; color: orange"></ion-icon>
+        <span style="font-size: 3rem;">&nbsp;Not connected&nbsp;&nbsp;</span>
+        <ion-spinner name="dots" duration="2000"></ion-spinner>
+        <div>
+          <span style="padding-left: 2.8rem;">Looking for TrashBoy3000</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="connectionStatus == 'UNABLE_TO_SCAN' || connectionStatus === 'NO_DEVICE_REACHABLE'">
+      <ion-card-content>
+        <ion-icon name="ios-bluetooth" style="font-size: 3rem; color: red"></ion-icon>
+        <span style="font-size: 3rem;">&nbsp;Failed&nbsp;</span>
+        <ion-icon name="md-sad" style="font-size: 2.4rem;"></ion-icon>
+        <div style="padding: 1rem 0 1rem 2.8rem;">
+          No TrashBoy found. Is bluetooth enabled,<br />
+          access granted and the boy in sight?
+        </div>
+        <button ion-button color="secondary" block padding (click)="establishConnection()">
+          <ion-icon name="refresh"></ion-icon>&nbsp;&nbsp;Try again
+        </button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card *ngIf="connectionStatus === 'CONNECTED'">
+      <ion-card-content>
+        <ion-icon name="ios-bluetooth" style="font-size: 3rem; color: limegreen"></ion-icon>
+        <span style="font-size: 3rem;">&nbsp;Connected&nbsp;</span>
+        <ion-icon name="md-happy" style="font-size: 2.4rem;"></ion-icon>
+        <div>
+          <span style="padding-left: 2.8rem;">TrashBoy is ready. Let's put out some cans!</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-list-header><strong>Next emptyings</strong></ion-list-header>
+
+    <ion-card *ngIf="connectionStatus !== 'CONNECTED'">
+      <ion-item>
+        <ion-avatar item-start>
+          <ion-icon name="md-trash" [ngStyle]="{'color': 'grey', 'font-size': '5rem', 'transform': 'rotate(160deg)'}"></ion-icon>
+        </ion-avatar>
+        <h2>Waiting for connection</h2>
+      </ion-item>
+    </ion-card>
+
+    <ion-card *ngIf="connectionStatus === 'CONNECTED' && retrievingDates">
+      <ion-item>
+        <ion-avatar item-start>
+          <ion-icon name="md-trash" [ngStyle]="{'color': 'lightgreen', 'font-size': '5rem', 'transform': 'rotate(-20deg)'}"></ion-icon>
+        </ion-avatar>
+        <h2>Retrieving dates from device</h2><ion-spinner name="dots" duration="2000"></ion-spinner>
+      </ion-item>
+    </ion-card>
+
+    <ion-card *ngIf="connectionStatus === 'CONNECTED' && !retrievingDates && (!nextDates || !nextDates.length)">
+      <ion-item>
+        <ion-avatar item-start>
+          <ion-icon name="md-trash" [ngStyle]="{'color': 'lightgreen', 'font-size': '5rem', 'transform': 'rotate(-20deg)'}"></ion-icon>
+        </ion-avatar>
+        <h2>No further emtyings</h2>
+      </ion-item>
+    </ion-card>
+
+    <ion-card *ngFor="let date of ackableDates; let i = index">
+      <ion-item-sliding>
+        <ion-item>
+          <ion-avatar item-start>
+            <ion-icon *ngIf="!date.ack" name="md-trash" [ngStyle]="{'color': date.channelColor, 'font-size': '5rem'}"></ion-icon>
+            <ion-icon *ngIf="date.ack" name="checkmark-circle" [ngStyle]="{'color': 'lightgreen', 'font-size': '4rem'}"></ion-icon>
+          </ion-avatar>
+          <h2 [ngStyle]="{'text-decoration': date.ack ? 'line-through' : 'none' }">{{date.channel}} @ {{ date.shortDate }}</h2>
+          <ion-badge item-end [color]="date.daysLeft <= 1 ? 'danger' : 'primary'">{{ date.daysLeftSpeaking }}</ion-badge>
+        </ion-item>
+        <ion-item-options *ngIf="!date.ack" side="right" (ionSwipe)="ack(i)">
+          <button ion-button expandable color="danger" (click)="ack(i)">
+            <ion-icon name="checkmark"></ion-icon>
+            <div>Acknowledge</div>
+          </button>
+        </ion-item-options>
+      </ion-item-sliding>
+    </ion-card>
+
+    <ion-list-header *ngIf="connectionStatus === 'CONNECTED' && nextDates && nextDates.length"><strong>Further emptyings</strong></ion-list-header>
+
+    <ion-card *ngFor="let date of nextDates">
+      <ion-item>
+        <ion-avatar item-start>
+          <ion-icon name="md-trash" [ngStyle]="{'color': date.channelColor, 'font-size': '5rem'}"></ion-icon>
+        </ion-avatar>
+        <h2>{{date.channel}} @ {{ date.shortDate }}</h2>
+        <ion-badge item-end [color]="date.daysLeft <= 3 ? 'danger' : 'primary'">{{ date.daysLeftSpeaking }}</ion-badge>
+      </ion-item>
+    </ion-card>
+
+  </ion-list>
 </ion-content>
